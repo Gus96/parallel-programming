@@ -61,7 +61,7 @@ int main(int argc, char *argv[])//количество процессов и ссылка на exe
 	/*char str[128] = "";*/
 	int n = 1000;
 	double N = 0;
-	//MPI_Status stat;
+	MPI_Status stat;
 	MPI_Init(&argc, &argv);//Инициализация среды выполнения MPI программы, параметры - кол-во аргументов командной строки и сами аргументы
 	MPI_Comm_size(MPI_COMM_WORLD, &procs);//количество процессов
 	MPI_Comm_rank(MPI_COMM_WORLD, &rankprocs);//определяет ранг процесса(который вызвал эту функцию)
@@ -100,19 +100,32 @@ int main(int argc, char *argv[])//количество процессов и ссылка на exe
 	if (rankprocs == 0)
 	t1 = MPI_Wtime();
 	MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD); //рассылка числа
+	///////
+			int razmer = n / procs;//5
+			if ((n % procs) != 0)
+				razmer++;
+			//int kolichestvo = razmer * (rankprocs + 1);//
+			if (rankprocs == 0) {
+		for (int i = 1; i < procs; i++) {
+			/*MPI_Recv(&razmer, 1, MPI_DOUBLE, i, 1, MPI_COMM_WORLD, &stat);
+			MPI_Recv(&kolichestvo, 1, MPI_DOUBLE, i, 1, MPI_COMM_WORLD, &stat);*/
+			MPI_Send(&str[n/procs*i], razmer, MPI_DOUBLE, i, 0, MPI_COMM_WORLD);
+		}
+	}
+	///////////
 
-	MPI_Bcast(str, n, MPI_CHAR, 0, MPI_COMM_WORLD); //рассылка строки
+	//MPI_Bcast(str, n, MPI_CHAR, 0, MPI_COMM_WORLD); //рассылка строки
 
 	int size = n / procs;
 	if ((n % procs) != 0)
 		size++;
-		//size += procs - 1;
+		/////////size += procs - 1;
 	int i1 = size * rankprocs;
 	int i2 = size * (rankprocs + 1);
 
 	double summ = 0;
 	cout << rankprocs << " proc start work" << endl;
-	for (int i = i1; i < i2; i++)
+	for (int i = 0; i < razmer; i++)
 	{
 		if (str[i] == ' ')
 			summ++;
@@ -133,7 +146,7 @@ int main(int argc, char *argv[])//количество процессов и ссылка на exe
 		//	N += summ;
 		//}
 		//MPI_Reduce(&summ, &N, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-		N++;//???????????????????????????если нет пробелов
+		N++;//если нет пробелов
 		if (str[0] == ' ')//проверка на первый нулевой
 			N--;
 		if (str[n - 1] == ' ')
