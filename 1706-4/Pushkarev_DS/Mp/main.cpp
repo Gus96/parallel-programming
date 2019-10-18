@@ -7,7 +7,7 @@ using namespace::std;
 
 int procs; //число процессов
 int rankprocs; //номер ранга(принимает разные значения в разных процессах)
-
+int razmer = 0;
 //заполнение строки
 char* FillStr(int n)
 {
@@ -58,6 +58,8 @@ int main(int argc, char *argv[])//количество процессов и ссылка на exe
 	//подразумевается, что слова разделяются пробелами
 	char* str;
 	str = new char[1000];
+	char* localArray;
+	//localArray = new char[1000];
 	/*char str[128] = "";*/
 	int n = 1000;
 	double N = 0;
@@ -70,7 +72,7 @@ int main(int argc, char *argv[])//количество процессов и ссылка на exe
 
 	/*precision = MPI_Wtick();
 	cout << precision << endl;*/
-	//procs = 4;///////////////
+	//procs = 2;///////////////
 
 	if (rankprocs == 0)
 	{
@@ -84,10 +86,11 @@ int main(int argc, char *argv[])//количество процессов и ссылка на exe
 		flag = true;
 		else {
 			cout << "size str > 0" << endl;
-			cin.clear();
+			//cin.clear();
 		}
 		}
 		cin.getline(str, n);
+		t1 = MPI_Wtime();
 		str = FillStr(n);////
 		if (procs < 1)
 		{
@@ -96,44 +99,107 @@ int main(int argc, char *argv[])//количество процессов и ссылка на exe
 		}
 		else
 			cout << "Number proc : " << procs << endl;
+
+		razmer = n / procs;//5
+		if ((n % procs) != 0)
+			razmer++;
+		razmer += 2;
 	}
-	if (rankprocs == 0)
-	t1 = MPI_Wtime();
-	MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD); //рассылка числа
+	//t1 = MPI_Wtime();
+	//MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD); //рассылка числа
+	MPI_Bcast(&razmer, 1, MPI_INT, 0, MPI_COMM_WORLD); //рассылка числа
+	//int razmer = 0;
+	//	razmer = n / procs;//5
+	//	if ((n % procs) != 0)
+	//		razmer++;
+	//	razmer += 2;//7
+		//int s = razmer + 2;//для шестого //для \0
+//для \0
+	localArray = new char[razmer+1];
+	localArray[razmer - 1] = '\0';
+	//localArray[razmer] = 'A';
+	/*if (!rankprocs)
+	{
+		for (int i = 0; i <= razmer; i++)
+			cout << localArray[i];
+		cout << endl;
+	}*/
 	///////
-			int razmer = n / procs;//5
-			if ((n % procs) != 0)
-				razmer++;
+
+	//for (int i = 1; i < procs; i++)
+	//MPI_Scatterv(str, razmer - 1, MPI_CHAR, localArray, razmer - 1, MPI_CHAR, 0, MPI_COMM_WORLD);
+	MPI_Barrier(MPI_COMM_WORLD);
 			//int kolichestvo = razmer * (rankprocs + 1);//
-			if (rankprocs == 0) {
-		for (int i = 1; i < procs; i++) {
-			/*MPI_Recv(&razmer, 1, MPI_DOUBLE, i, 1, MPI_COMM_WORLD, &stat);
-			MPI_Recv(&kolichestvo, 1, MPI_DOUBLE, i, 1, MPI_COMM_WORLD, &stat);*/
-			MPI_Send(&str[n/procs*i], razmer, MPI_DOUBLE, i, 0, MPI_COMM_WORLD);
+		if (rankprocs == 0) 
+		{
+			for (int i = 1; i < procs; i++)
+			{
+				/*MPI_Recv(&razmer, 1, MPI_DOUBLE, i, 1, MPI_COMM_WORLD, &stat);
+				MPI_Recv(&kolichestvo, 1, MPI_DOUBLE, i, 1, MPI_COMM_WORLD, &stat);*/
+				//MPI_Send(&str[razmer * i], razmer + 1, MPI_DOUBLE, i, 0, MPI_COMM_WORLD);
+			//MPI_Send(&str[(razmer * i) - 2], razmer - 1, MPI_CHAR, i, 0, MPI_COMM_WORLD);
+			MPI_Send(&str[((razmer-2) * i)], razmer - 1, MPI_CHAR, i, 0, MPI_COMM_WORLD);
+				//MPI_Scatter(&str[((razmer -2) *i)], razmer - 1, MPI_CHAR, localArray, razmer - 1, MPI_CHAR, 0, MPI_COMM_WORLD);
+			}
+			for (int i = 0; i < razmer - 1; i++)
+				localArray[i] = str[i];
+			//localArray[razmer - 1] = '\0';
 		}
-	}
+			else
+			{
+				MPI_Recv(localArray, razmer - 1, MPI_CHAR, 0, 0, MPI_COMM_WORLD, &stat);
+				/*cout << rankprocs << "MASSIV" << endl;
+				for (int i = 0; i <= razmer; i++)
+					cout << localArray[i];
+				cout << endl;*/
+
+
+
+			/*localArray[0] = ' ';
+			localArray[1] = 'q';
+			localArray[2] = ' ';
+			localArray[3] = 'v';
+				localArray[4] = '\0';*/
+				//localArray[razmer - 1] = '\0';
+			}
 	///////////
 
 	//MPI_Bcast(str, n, MPI_CHAR, 0, MPI_COMM_WORLD); //рассылка строки
 
-	int size = n / procs;
-	if ((n % procs) != 0)
-		size++;
-		/////////size += procs - 1;
-	int i1 = size * rankprocs;
-	int i2 = size * (rankprocs + 1);
+			double summ = 0;
+			cout << rankprocs << " proc start work" << endl;
+			for (int i = 0; i < razmer - 2; i++)
+				{
+					if (localArray[i] == ' ')
+						summ++;
+					if (localArray[i] == ' ' && localArray[i + 1] == ' ')
+								summ--;
+				}
+			/*cout << rankprocs << " PROCESS : " << summ << endl;
+			for (int i = 0; i < razmer; i++)
+			{
+				cout << localArray[i];
+			}
+			cout << endl;*/
 
-	double summ = 0;
-	cout << rankprocs << " proc start work" << endl;
-	for (int i = 0; i < razmer; i++)
-	{
-		if (str[i] == ' ')
-			summ++;
-		//if (str[i] == ' ' && (str[i + 1] == ' ' || str[i + 1] == 0)) // проверка на лишние пробелы//для случаев, когда посл символ пробел
-		//if ((str[i] == ' ' && str[i + 1] == ' ') || (str[i] == ' ' && str[i + 1] == 0))
-		if (str[i] == ' ' && str[i + 1] == ' ')
-			summ--;
-	}
+	//int size = n / procs;
+	//if ((n % procs) != 0)
+	//	size++;
+	//	/////////size += procs - 1;
+	//int i1 = size * rankprocs;
+	//int i2 = size * (rankprocs + 1);
+
+	//double summ = 0;
+	//cout << rankprocs << " proc start work" << endl;
+	//for (int i = 0; i < razmer; i++)
+	//{
+	//	if (str[i] == ' ')
+	//		summ++;
+	//	//if (str[i] == ' ' && (str[i + 1] == ' ' || str[i + 1] == 0)) // проверка на лишние пробелы//для случаев, когда посл символ пробел
+	//	//if ((str[i] == ' ' && str[i + 1] == ' ') || (str[i] == ' ' && str[i + 1] == 0))
+	//	if (str[i] == ' ' && str[i + 1] == ' ')
+	//		summ--;
+	//}
 	double sums = 0;
 	MPI_Reduce(&summ, &sums, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 		//N++;
@@ -166,6 +232,8 @@ int main(int argc, char *argv[])//количество процессов и ссылка на exe
 		cout << "Procnum " << rankprocs << " time= " << dt << endl;*/
 	}
 	//cout << t2 - t1;
+	//delete[] str;
+	//delete[] localArray;
 	MPI_Finalize();//Последняя вызываемая ф-я MPI
 	return 0;
 }
