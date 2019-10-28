@@ -1,6 +1,6 @@
 #include "mpi.h"
 #include <iostream> 
-#include "stdlib.h"
+#include <stdlib.h>
 #include <random>
 
 using namespace::std;
@@ -8,6 +8,7 @@ using namespace::std;
 int procs; //число процессов
 int rankprocs; //номер ранга(принимает разные значения в разных процессах)
 int razmer = 0;
+int proverka = 0;
 //заполнение строки
 char* FillStr(int n)
 {
@@ -100,14 +101,50 @@ int main(int argc, char *argv[])//количество процессов и ссылка на exe
 		else
 			cout << "Number proc : " << procs << endl;
 
-		razmer = n / procs;//5
-		if ((n % procs) != 0)
+		razmer = (n + 1) / procs;//5
+		proverka = razmer;
+		if (((n+1) % procs) != 0)
+		{
 			razmer++;
-		razmer += 2;
+		}
+			//razmer++;
+		razmer += 1;//перекрытие
 	}
 	//t1 = MPI_Wtime();
 	//MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD); //рассылка числа
-	MPI_Bcast(&razmer, 1, MPI_INT, 0, MPI_COMM_WORLD); //рассылка числа
+
+
+	//MPI_Bcast(&razmer, 1, MPI_INT, 0, MPI_COMM_WORLD); //рассылка числа
+
+
+	if (rankprocs == 0)
+	for (int i = 1; i < procs; i++)
+	{
+		if (i != (procs - 1)) {
+			MPI_Send(&razmer, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
+		}
+		else {
+			MPI_Send(&proverka, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
+		}
+	}
+	else
+	{
+		if (rankprocs != (procs - 1))
+		{
+			MPI_Recv(&razmer, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, &stat);
+		}
+		else
+		{
+			MPI_Recv(&razmer, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, &stat);
+		}
+	}
+
+	/*if (rankprocs == 0)
+	{
+		MPI_Send(&proverka, 1, MPI_INT, procs, 0, MPI_COMM_WORLD);
+	}*/
+	/*else if (rankprocs == procs)
+	MPI_Recv(&razmer, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, &stat);*/
 	//int razmer = 0;
 	//	razmer = n / procs;//5
 	//	if ((n % procs) != 0)
@@ -116,7 +153,10 @@ int main(int argc, char *argv[])//количество процессов и ссылка на exe
 		//int s = razmer + 2;//для шестого //для \0
 //для \0
 	localArray = new char[razmer+1];
-	localArray[razmer - 1] = '\0';
+	localArray[razmer] = '\0';
+	/*for (int i = 0; i < razmer + 1; i++)
+		cout << localArray[i];
+	cout << endl;*/
 	//localArray[razmer] = 'A';
 	/*if (!rankprocs)
 	{
@@ -128,7 +168,7 @@ int main(int argc, char *argv[])//количество процессов и ссылка на exe
 
 	//for (int i = 1; i < procs; i++)
 	//MPI_Scatterv(str, razmer - 1, MPI_CHAR, localArray, razmer - 1, MPI_CHAR, 0, MPI_COMM_WORLD);
-	MPI_Barrier(MPI_COMM_WORLD);
+	//MPI_Barrier(MPI_COMM_WORLD);
 			//int kolichestvo = razmer * (rankprocs + 1);//
 		if (rankprocs == 0) 
 		{
@@ -138,16 +178,29 @@ int main(int argc, char *argv[])//количество процессов и ссылка на exe
 				MPI_Recv(&kolichestvo, 1, MPI_DOUBLE, i, 1, MPI_COMM_WORLD, &stat);*/
 				//MPI_Send(&str[razmer * i], razmer + 1, MPI_DOUBLE, i, 0, MPI_COMM_WORLD);
 			//MPI_Send(&str[(razmer * i) - 2], razmer - 1, MPI_CHAR, i, 0, MPI_COMM_WORLD);
-			MPI_Send(&str[((razmer-2) * i)], razmer - 1, MPI_CHAR, i, 0, MPI_COMM_WORLD);
+				if (i == (procs - 1))
+				{
+					MPI_Send(&str[((razmer - 1) * i)], proverka, MPI_CHAR, i, 0, MPI_COMM_WORLD);
+				}
+				else
+				MPI_Send(&str[((razmer - 1) * i)], razmer, MPI_CHAR, i, 0, MPI_COMM_WORLD);
 				//MPI_Scatter(&str[((razmer -2) *i)], razmer - 1, MPI_CHAR, localArray, razmer - 1, MPI_CHAR, 0, MPI_COMM_WORLD);
 			}
-			for (int i = 0; i < razmer - 1; i++)
+			for (int i = 0; i < razmer; i++)
 				localArray[i] = str[i];
+			for (int i = 0; i < razmer; i++)
+				cout << localArray[i];
 			//localArray[razmer - 1] = '\0';
 		}
+
 			else
 			{
-				MPI_Recv(localArray, razmer - 1, MPI_CHAR, 0, 0, MPI_COMM_WORLD, &stat);
+				if (rankprocs == (procs - 1))
+					MPI_Recv(localArray, razmer, MPI_CHAR, 0, 0, MPI_COMM_WORLD, &stat);
+					
+			else
+				MPI_Recv(localArray, razmer, MPI_CHAR, 0, 0, MPI_COMM_WORLD, &stat);
+
 				/*cout << rankprocs << "MASSIV" << endl;
 				for (int i = 0; i <= razmer; i++)
 					cout << localArray[i];
@@ -168,13 +221,15 @@ int main(int argc, char *argv[])//количество процессов и ссылка на exe
 
 			double summ = 0;
 			cout << rankprocs << " proc start work" << endl;
-			for (int i = 0; i < razmer - 2; i++)
+			for (int i = 0; i < razmer-1; i++)
 				{
 					if (localArray[i] == ' ')
 						summ++;
 					if (localArray[i] == ' ' && localArray[i + 1] == ' ')
 								summ--;
 				}
+			//cout << rankprocs << " PROCESS : " << summ << endl;
+
 			/*cout << rankprocs << " PROCESS : " << summ << endl;
 			for (int i = 0; i < razmer; i++)
 			{
