@@ -105,10 +105,12 @@ int main(int argc, char *argv[])//количество процессов и ссылка на exe
 		proverka = razmer;
 		if (((n+1) % procs) != 0)
 		{
-			razmer++;
+			proverka += (n + 1) % procs;
+			//razmer++;
 		}
 			//razmer++;
 		razmer += 1;//перекрытие
+		//cout << proverka << "PROVERKA" << endl;
 	}
 	//t1 = MPI_Wtime();
 	//MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD); //рассылка числа
@@ -188,8 +190,8 @@ int main(int argc, char *argv[])//количество процессов и ссылка на exe
 			}
 			for (int i = 0; i < razmer; i++)
 				localArray[i] = str[i];
-			for (int i = 0; i < razmer; i++)
-				cout << localArray[i];
+			/*for (int i = 0; i < razmer; i++)
+				cout << localArray[i];*/
 			//localArray[razmer - 1] = '\0';
 		}
 
@@ -228,6 +230,9 @@ int main(int argc, char *argv[])//количество процессов и ссылка на exe
 					if (localArray[i] == ' ' && localArray[i + 1] == ' ')
 								summ--;
 				}
+			/*for (int i = 0; i < razmer; i++)
+		cout << localArray[i];
+	cout << endl;*/
 			//cout << rankprocs << " PROCESS : " << summ << endl;
 
 			/*cout << rankprocs << " PROCESS : " << summ << endl;
