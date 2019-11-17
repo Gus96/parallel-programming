@@ -10,23 +10,23 @@
 //#include <stdexcept>
 #include <random>
 
-void test_add(void* a, void* b, int n);////
-void test_add_double(void* a, void* b, int n);
+void SUM_int(void* a, void* b, int n);////
+void SUM_double(void* a, void* b, int n);
 void PROD_int(void* a, void* b, int n);
-void PROD_double(void* a, void* b, int n);
 void MAX_int(void* a, void* b, int n);
-void MAX_double(void* a, void* b, int n);
 void MIN_int(void* a, void* b, int n);
-void MIN_double(void* a, void* b, int n);
 void LAND_int(void* a, void* b, int n);
-void LAND_double(void* a, void* b, int n);
 void LOR_int(void* a, void* b, int n);
-void LOR_double(void* a, void* b, int n);
 void LXOR_int(void* a, void* b, int n);
-void LXOR_double(void* a, void* b, int n);
 void BOR_int(void* a, void* b, int n);
 void BXOR_int(void* a, void* b, int n);
 void BAND_int(void* a, void* b, int n);
+void PROD_double(void* a, void* b, int n);
+void MAX_double(void* a, void* b, int n);
+void MIN_double(void* a, void* b, int n);
+void LAND_double(void* a, void* b, int n);
+void LOR_double(void* a, void* b, int n);
+void LXOR_double(void* a, void* b, int n);
 void MAXLOC_double(void* a, void* b, int n, MPI_Comm comm);
 void MINLOC_double(void* a, void* b, int n, MPI_Comm fcomm);
 
@@ -86,7 +86,7 @@ void Reduce(void* where_to_send_from, void* where_to_send_to, int how_much, MPI_
 					{
 						if (op == MPI_SUM)
 						{
-							test_add(where_to_send_to, where_to_send_from, how_much);
+							SUM_int(where_to_send_to, where_to_send_from, how_much);
 						}
 						else if (op == MPI_PROD)
 						{
@@ -129,7 +129,7 @@ void Reduce(void* where_to_send_from, void* where_to_send_to, int how_much, MPI_
 					{
 						if (op == MPI_SUM)
 						{
-							test_add_double(where_to_send_to, where_to_send_from, how_much);
+							SUM_double(where_to_send_to, where_to_send_from, how_much);
 						}
 						else if (op == MPI_PROD)
 						{
@@ -168,11 +168,10 @@ void Reduce(void* where_to_send_from, void* where_to_send_to, int how_much, MPI_
 						}
 					}
 
-					//op(where_to_send_to, where_to_send_from, how_much);
 
 				}
 
-				rank /= 2;/////////////////может в 2 раза меньше становится
+				rank /= 2;/////////////////2 раза меньше становится
 
 			}
 
@@ -200,38 +199,7 @@ void Reduce(void* where_to_send_from, void* where_to_send_to, int how_much, MPI_
 
 }
 
-
-int SumOfMatrixElementsPartly(std::vector<int> matrix) {
-
-	int sum = 0;
-
-	int size = matrix.size();
-
-	for (int i = 0; i < size; i++)
-
-		sum += matrix[i];
-
-	return sum;
-
-}
-
-
-
-int MultiplicationOfMatrixElementsPartly(std::vector<int> matrix) {
-
-	int sum = 0;
-
-	int size = matrix.size();
-
-	for (int i = 0; i < size; i++)
-
-		sum *= matrix[i];
-
-	return sum;
-
-}
-
-void test_add(void* a, void* b, int n)
+void SUM_int(void* a, void* b, int n)
 {
 
 	//*b += *a;
@@ -241,48 +209,18 @@ void test_add(void* a, void* b, int n)
 		((int*)b)[i] += ((int*)a)[i];
 
 }
-
-void test_add_double(void* a, void* b, int n)
-{
-
-	//*b += *a;
-
-
-	for (int i = 0; i < n; i++)
-		((double*)b)[i] += ((double*)a)[i];
-
-}
-
 void PROD_int(void* a, void* b, int n)
 {
 	for (int i = 0; i < n; i++)
 		((int*)b)[i] *= ((int*)a)[i];
 
 }
-
-void PROD_double(void* a, void* b, int n)
-{
-	for (int i = 0; i < n; i++)
-		((double*)b)[i] *= ((double*)a)[i];
-
-}
-
 void MAX_int(void* a, void* b, int n)
 {
 	for (int i = 0; i < n; i++)
 	{
 		if (((int*)b)[i] < ((int*)a)[i])
 			((int*)b)[i] = ((int*)a)[i];
-	}
-
-}
-
-void MAX_double(void* a, void* b, int n)
-{
-	for (int i = 0; i < n; i++)
-	{
-		if(((double*)b)[i] < ((double*)a)[i])
-			((double*)b)[i] = ((double*)a)[i];
 	}
 
 }
@@ -296,17 +234,6 @@ void MIN_int(void* a, void* b, int n)
 	}
 
 }
-
-void MIN_double(void* a, void* b, int n)
-{
-	for (int i = 0; i < n; i++)
-	{
-		if (((double*)b)[i] > ((double*)a)[i])
-			((double*)b)[i] = ((double*)a)[i];
-	}
-
-}
-
 void LAND_int(void* a, void* b, int n)
 {
 	for (int i = 0; i < n; i++)
@@ -315,16 +242,6 @@ void LAND_int(void* a, void* b, int n)
 	}
 
 }
-
-void LAND_double(void* a, void* b, int n)
-{
-	for (int i = 0; i < n; i++)
-	{
-			((double*)b)[i]= ((double*)b)[i] && ((double*)a)[i];
-	}
-
-}
-
 void LOR_int(void* a, void* b, int n)
 {
 	for (int i = 0; i < n; i++)
@@ -333,30 +250,11 @@ void LOR_int(void* a, void* b, int n)
 	}
 
 }
-
-void LOR_double(void* a, void* b, int n)
-{
-	for (int i = 0; i < n; i++)
-	{
-		((double*)b)[i] = ((double*)b)[i] || ((double*)a)[i];
-	}
-
-}
-
 void LXOR_int(void* a, void* b, int n)
 {
 	for (int i = 0; i < n; i++)
 	{
 		((int*)b)[i] = ((int*)b)[i] != ((int*)a)[i];
-	}
-
-}
-
-void LXOR_double(void* a, void* b, int n)
-{
-	for (int i = 0; i < n; i++)
-	{
-		((double*)b)[i] = ((double*)b)[i] != ((double*)a)[i];
 	}
 
 }
@@ -388,6 +286,75 @@ void BAND_int(void* a, void* b, int n)
 
 }
 
+
+void SUM_double(void* a, void* b, int n)
+{
+
+	//*b += *a;
+
+
+	for (int i = 0; i < n; i++)
+		((double*)b)[i] += ((double*)a)[i];
+
+}
+
+void PROD_double(void* a, void* b, int n)
+{
+	for (int i = 0; i < n; i++)
+		((double*)b)[i] *= ((double*)a)[i];
+
+}
+
+void MAX_double(void* a, void* b, int n)
+{
+	for (int i = 0; i < n; i++)
+	{
+		if(((double*)b)[i] < ((double*)a)[i])
+			((double*)b)[i] = ((double*)a)[i];
+	}
+
+}
+
+void MIN_double(void* a, void* b, int n)
+{
+	for (int i = 0; i < n; i++)
+	{
+		if (((double*)b)[i] > ((double*)a)[i])
+			((double*)b)[i] = ((double*)a)[i];
+	}
+
+}
+
+void LAND_double(void* a, void* b, int n)
+{
+	for (int i = 0; i < n; i++)
+	{
+			((double*)b)[i]= ((double*)b)[i] && ((double*)a)[i];
+	}
+
+}
+
+
+void LOR_double(void* a, void* b, int n)
+{
+	for (int i = 0; i < n; i++)
+	{
+		((double*)b)[i] = ((double*)b)[i] || ((double*)a)[i];
+	}
+
+}
+
+
+void LXOR_double(void* a, void* b, int n)
+{
+	for (int i = 0; i < n; i++)
+	{
+		((double*)b)[i] = ((double*)b)[i] != ((double*)a)[i];
+	}
+
+}
+
+
 void MAXLOC_double(void* a, void* b, int n, MPI_Comm fcomm)
 {
 	int rank;
@@ -395,8 +362,8 @@ MPI_Comm_rank(fcomm, &rank);
 
 	for (int i = 0; i < n; i++)
 	{
-		std::cout<<rank << "BEFORE" << ((A*)(double*)b)[i].value << std::endl;
-		std::cout<<rank << "SRAVNI" << ((A*)(double*)a)[i].value << std::endl;
+		/*std::cout<<rank << "BEFORE" << ((A*)(double*)b)[i].value << std::endl;
+		std::cout<<rank << "SRAVNI" << ((A*)(double*)a)[i].value << std::endl;*/
 		if (((A*)(double*)b)[i].value < ((A*)(double*)a)[i].value)
 		{
 			((A*)(double*)b)[i].value = ((A*)(double*)a)[i].value;
@@ -405,7 +372,7 @@ MPI_Comm_rank(fcomm, &rank);
 		else if (((A*)(double*)b)[i].value == ((A*)(double*)a)[i].value)
 			if (((A*)(int*)b)[i].proc > ((A*)(int*)a)[i].proc)
 				((A*)(int*)b)[i].proc = ((A*)(int*)a)[i].proc;
-		std::cout << "AFTER" << ((A*)(double*)b)[i].value << std::endl;
+		/*std::cout << "AFTER" << ((A*)(double*)b)[i].value << std::endl;*/
 	}
 	std::cout << std::endl << std::endl;
 }
@@ -416,9 +383,9 @@ void MINLOC_double(void* a, void* b, int n, MPI_Comm fcomm)
 	MPI_Comm_rank(fcomm, &rank);
 	for (int i = 0; i < n; i++)
 	{
-		std::cout << rank << "PROCESSSSSSSS " << ((A*)(double*)b)[i].proc << std::endl;
+		/*std::cout << rank << "PROCESSSSSSSS " << ((A*)(double*)b)[i].proc << std::endl;
 		std::cout << rank << "VALUE_B " << ((A*)(double*)b)[i].value << std::endl;
-		std::cout << rank << "VALUE_A " << ((A*)(double*)a)[i].value << std::endl;
+		std::cout << rank << "VALUE_A " << ((A*)(double*)a)[i].value << std::endl;*/
 		if (((A*)(double*)b)[i].value > ((A*)(double*)a)[i].value)
 		{
 			((A*)(double*)b)[i].value = ((A*)(double*)a)[i].value;
@@ -427,8 +394,8 @@ void MINLOC_double(void* a, void* b, int n, MPI_Comm fcomm)
 		else if(((A*)(double*)b)[i].value == ((A*)(double*)a)[i].value)
 			if(((A*)(int*)b)[i].proc > ((A*)(int*)a)[i].proc)
 				((A*)(int*)b)[i].proc = ((A*)(int*)a)[i].proc;
-		std::cout << rank << "VALUE_B_AFTER " << ((A*)(double*)b)[i].value << std::endl;
-		std::cout <<i<<" INDEX "<<rank << "PROCESSSSSSSS" << ((A*)(double*)b)[i].proc << std::endl;
+		/*std::cout << rank << "VALUE_B_AFTER " << ((A*)(double*)b)[i].value << std::endl;
+		std::cout <<i<<" INDEX "<<rank << "PROCESSSSSSSS" << ((A*)(double*)b)[i].proc << std::endl;*/
 
 	}
 	std::cout << std::endl << std::endl;
