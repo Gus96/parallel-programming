@@ -10,7 +10,7 @@
 //#include <stdexcept>
 #include <random>
 
-void test_add(void* a, void* b, int n);
+void test_add(void* a, void* b, int n);////
 void test_add_double(void* a, void* b, int n);
 void PROD_int(void* a, void* b, int n);
 void PROD_double(void* a, void* b, int n);
