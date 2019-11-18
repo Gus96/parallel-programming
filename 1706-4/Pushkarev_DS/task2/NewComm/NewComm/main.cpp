@@ -12,23 +12,32 @@
 
 void SUM_int(void* a, void* b, int n);////
 void SUM_double(void* a, void* b, int n);
+void SUM_float(void* a, void* b, int n);
 void PROD_int(void* a, void* b, int n);
+void PROD_double(void* a, void* b, int n);
+void PROD_float(void* a, void* b, int n);
 void MAX_int(void* a, void* b, int n);
+void MAX_double(void* a, void* b, int n);
+void MAX_float(void* a, void* b, int n);
 void MIN_int(void* a, void* b, int n);
+void MIN_double(void* a, void* b, int n);
+void MIN_float(void* a, void* b, int n);
 void LAND_int(void* a, void* b, int n);
+void LAND_double(void* a, void* b, int n);
+void LAND_float(void* a, void* b, int n);
 void LOR_int(void* a, void* b, int n);
+void LOR_double(void* a, void* b, int n);
+void LOR_float(void* a, void* b, int n);
 void LXOR_int(void* a, void* b, int n);
+void LXOR_double(void* a, void* b, int n);
+void LXOR_float(void* a, void* b, int n);
 void BOR_int(void* a, void* b, int n);
 void BXOR_int(void* a, void* b, int n);
 void BAND_int(void* a, void* b, int n);
-void PROD_double(void* a, void* b, int n);
-void MAX_double(void* a, void* b, int n);
-void MIN_double(void* a, void* b, int n);
-void LAND_double(void* a, void* b, int n);
-void LOR_double(void* a, void* b, int n);
-void LXOR_double(void* a, void* b, int n);
 void MAXLOC_double(void* a, void* b, int n, MPI_Comm comm);
 void MINLOC_double(void* a, void* b, int n, MPI_Comm fcomm);
+void MAXLOC_float(void* a, void* b, int n, MPI_Comm fcomm);
+void MINLOC_float(void* a, void* b, int n, MPI_Comm fcomm);
 
 struct A {
 
@@ -156,6 +165,37 @@ void Reduce(void* where_to_send_from, void* where_to_send_to, int how_much, MPI_
 							LXOR_double(where_to_send_to, where_to_send_from, how_much);
 						}
 					}
+					else if (datatype == MPI_FLOAT)
+					{
+						if (op == MPI_SUM)
+						{
+							SUM_float(where_to_send_to, where_to_send_from, how_much);
+						}
+						else if (op == MPI_PROD)
+						{
+							PROD_float(where_to_send_to, where_to_send_from, how_much);
+						}
+						else if (op == MPI_MAX)
+						{
+							MAX_float(where_to_send_to, where_to_send_from, how_much);
+						}
+						else if (op == MPI_MIN)
+						{
+							MIN_float(where_to_send_to, where_to_send_from, how_much);
+						}
+						else if (op == MPI_LAND)
+						{
+							LAND_float(where_to_send_to, where_to_send_from, how_much);
+						}
+						else if (op == MPI_LOR)
+						{
+							LOR_float(where_to_send_to, where_to_send_from, how_much);
+						}
+						else if (op == MPI_LXOR)
+						{
+							LXOR_float(where_to_send_to, where_to_send_from, how_much);
+						}
+					}
 					else if (datatype == MPI_DOUBLE_INT)
 					{
 						if (op == MPI_MAXLOC)
@@ -165,6 +205,17 @@ void Reduce(void* where_to_send_from, void* where_to_send_to, int how_much, MPI_
 						else if (op == MPI_MINLOC)
 						{
 							MINLOC_double(where_to_send_to, where_to_send_from, how_much, comm);
+						}
+					}
+					else if (datatype == MPI_FLOAT_INT)
+					{
+						if (op == MPI_MAXLOC)
+						{
+							MAXLOC_float(where_to_send_to, where_to_send_from, how_much, comm);
+						}
+						else if (op == MPI_MINLOC)
+						{
+							MINLOC_float(where_to_send_to, where_to_send_from, how_much, comm);
 						}
 					}
 
@@ -209,10 +260,42 @@ void SUM_int(void* a, void* b, int n)
 		((int*)b)[i] += ((int*)a)[i];
 
 }
+
+void SUM_double(void* a, void* b, int n)
+{
+
+	//*b += *a;
+
+
+	for (int i = 0; i < n; i++)
+		((double*)b)[i] += ((double*)a)[i];
+
+}
+
+void SUM_float(void* a, void* b, int n)
+{
+	for (int i = 0; i < n; i++)
+		((float*)b)[i] += ((float*)a)[i];
+
+}
 void PROD_int(void* a, void* b, int n)
 {
 	for (int i = 0; i < n; i++)
 		((int*)b)[i] *= ((int*)a)[i];
+
+}
+
+void PROD_double(void* a, void* b, int n)
+{
+	for (int i = 0; i < n; i++)
+		((double*)b)[i] *= ((double*)a)[i];
+
+}
+
+void PROD_float(void* a, void* b, int n)
+{
+	for (int i = 0; i < n; i++)
+		((float*)b)[i] *= ((float*)a)[i];
 
 }
 void MAX_int(void* a, void* b, int n)
@@ -221,6 +304,26 @@ void MAX_int(void* a, void* b, int n)
 	{
 		if (((int*)b)[i] < ((int*)a)[i])
 			((int*)b)[i] = ((int*)a)[i];
+	}
+
+}
+
+void MAX_double(void* a, void* b, int n)
+{
+	for (int i = 0; i < n; i++)
+	{
+		if (((double*)b)[i] < ((double*)a)[i])
+			((double*)b)[i] = ((double*)a)[i];
+	}
+
+}
+
+void MAX_float(void* a, void* b, int n)
+{
+	for (int i = 0; i < n; i++)
+	{
+		if (((float*)b)[i] < ((float*)a)[i])
+			((float*)b)[i] = ((float*)a)[i];
 	}
 
 }
@@ -234,6 +337,27 @@ void MIN_int(void* a, void* b, int n)
 	}
 
 }
+
+void MIN_double(void* a, void* b, int n)
+{
+	for (int i = 0; i < n; i++)
+	{
+		if (((double*)b)[i] > ((double*)a)[i])
+			((double*)b)[i] = ((double*)a)[i];
+	}
+
+}
+
+void MIN_float(void* a, void* b, int n)
+{
+	for (int i = 0; i < n; i++)
+	{
+		if (((float*)b)[i] > ((float*)a)[i])
+			((float*)b)[i] = ((float*)a)[i];
+	}
+
+}
+
 void LAND_int(void* a, void* b, int n)
 {
 	for (int i = 0; i < n; i++)
@@ -242,6 +366,25 @@ void LAND_int(void* a, void* b, int n)
 	}
 
 }
+
+void LAND_double(void* a, void* b, int n)
+{
+	for (int i = 0; i < n; i++)
+	{
+		((double*)b)[i] = ((double*)b)[i] && ((double*)a)[i];
+	}
+
+}
+
+void LAND_float(void* a, void* b, int n)
+{
+	for (int i = 0; i < n; i++)
+	{
+		((float*)b)[i] = ((float*)b)[i] && ((float*)a)[i];
+	}
+
+}
+
 void LOR_int(void* a, void* b, int n)
 {
 	for (int i = 0; i < n; i++)
@@ -250,11 +393,48 @@ void LOR_int(void* a, void* b, int n)
 	}
 
 }
+
+void LOR_double(void* a, void* b, int n)
+{
+	for (int i = 0; i < n; i++)
+	{
+		((double*)b)[i] = ((double*)b)[i] || ((double*)a)[i];
+	}
+
+}
+
+void LOR_float(void* a, void* b, int n)
+{
+	for (int i = 0; i < n; i++)
+	{
+		((float*)b)[i] = ((float*)b)[i] || ((float*)a)[i];
+	}
+
+}
+
 void LXOR_int(void* a, void* b, int n)
 {
 	for (int i = 0; i < n; i++)
 	{
 		((int*)b)[i] = ((int*)b)[i] != ((int*)a)[i];
+	}
+
+}
+
+void LXOR_double(void* a, void* b, int n)
+{
+	for (int i = 0; i < n; i++)
+	{
+		((double*)b)[i] = ((double*)b)[i] != ((double*)a)[i];
+	}
+
+}
+
+void LXOR_float(void* a, void* b, int n)
+{
+	for (int i = 0; i < n; i++)
+	{
+		((float*)b)[i] = ((float*)b)[i] != ((float*)a)[i];
 	}
 
 }
@@ -285,75 +465,6 @@ void BAND_int(void* a, void* b, int n)
 	}
 
 }
-
-
-void SUM_double(void* a, void* b, int n)
-{
-
-	//*b += *a;
-
-
-	for (int i = 0; i < n; i++)
-		((double*)b)[i] += ((double*)a)[i];
-
-}
-
-void PROD_double(void* a, void* b, int n)
-{
-	for (int i = 0; i < n; i++)
-		((double*)b)[i] *= ((double*)a)[i];
-
-}
-
-void MAX_double(void* a, void* b, int n)
-{
-	for (int i = 0; i < n; i++)
-	{
-		if(((double*)b)[i] < ((double*)a)[i])
-			((double*)b)[i] = ((double*)a)[i];
-	}
-
-}
-
-void MIN_double(void* a, void* b, int n)
-{
-	for (int i = 0; i < n; i++)
-	{
-		if (((double*)b)[i] > ((double*)a)[i])
-			((double*)b)[i] = ((double*)a)[i];
-	}
-
-}
-
-void LAND_double(void* a, void* b, int n)
-{
-	for (int i = 0; i < n; i++)
-	{
-			((double*)b)[i]= ((double*)b)[i] && ((double*)a)[i];
-	}
-
-}
-
-
-void LOR_double(void* a, void* b, int n)
-{
-	for (int i = 0; i < n; i++)
-	{
-		((double*)b)[i] = ((double*)b)[i] || ((double*)a)[i];
-	}
-
-}
-
-
-void LXOR_double(void* a, void* b, int n)
-{
-	for (int i = 0; i < n; i++)
-	{
-		((double*)b)[i] = ((double*)b)[i] != ((double*)a)[i];
-	}
-
-}
-
 
 void MAXLOC_double(void* a, void* b, int n, MPI_Comm fcomm)
 {
@@ -396,6 +507,52 @@ void MINLOC_double(void* a, void* b, int n, MPI_Comm fcomm)
 				((A*)(int*)b)[i].proc = ((A*)(int*)a)[i].proc;
 		/*std::cout << rank << "VALUE_B_AFTER " << ((A*)(double*)b)[i].value << std::endl;
 		std::cout <<i<<" INDEX "<<rank << "PROCESSSSSSSS" << ((A*)(double*)b)[i].proc << std::endl;*/
+
+	}
+	std::cout << std::endl << std::endl;
+}
+
+void MAXLOC_float(void* a, void* b, int n, MPI_Comm fcomm)
+{
+	int rank;
+	MPI_Comm_rank(fcomm, &rank);
+
+	for (int i = 0; i < n; i++)
+	{
+		std::cout << rank << "BEFORE" << ((A*)(float*)b)[i].value << std::endl;
+		std::cout << rank << "SRAVNI" << ((A*)(float*)a)[i].value << std::endl;
+		if (((A*)(double*)b)[i].value < ((A*)(float*)a)[i].value)
+		{
+			((A*)(float*)b)[i].value = ((A*)(float*)a)[i].value;
+			((A*)(int*)b)[i].proc = ((A*)(int*)a)[i].proc;
+		}
+		else if (((A*)(float*)b)[i].value == ((A*)(float*)a)[i].value)
+			if (((A*)(int*)b)[i].proc > ((A*)(int*)a)[i].proc)
+				((A*)(int*)b)[i].proc = ((A*)(int*)a)[i].proc;
+		std::cout << "AFTER" << ((A*)(float*)b)[i].value << std::endl;
+	}
+	std::cout << std::endl << std::endl;
+}
+
+void MINLOC_float(void* a, void* b, int n, MPI_Comm fcomm)
+{
+	int rank;
+	MPI_Comm_rank(fcomm, &rank);
+	for (int i = 0; i < n; i++)
+	{
+		std::cout << rank << "PROCESS " << ((A*)(float*)b)[i].proc << std::endl;
+		std::cout << rank << "VALUE_B " << ((A*)(float*)b)[i].value << std::endl;
+		std::cout << rank << "VALUE_A " << ((A*)(float*)a)[i].value << std::endl;
+		if (((A*)(float*)b)[i].value > ((A*)(float*)a)[i].value)
+		{
+			((A*)(float*)b)[i].value = ((A*)(float*)a)[i].value;
+			((A*)(int*)b)[i].proc = ((A*)(int*)a)[i].proc;
+		}
+		else if (((A*)(float*)b)[i].value == ((A*)(float*)a)[i].value)
+			if (((A*)(int*)b)[i].proc > ((A*)(int*)a)[i].proc)
+				((A*)(int*)b)[i].proc = ((A*)(int*)a)[i].proc;
+		std::cout << rank << "VALUE_B_AFTER " << ((A*)(float*)b)[i].value << std::endl;
+		std::cout << i << " INDEX " << rank << "PROCESS" << ((A*)(float*)b)[i].proc << std::endl;
 
 	}
 	std::cout << std::endl << std::endl;
