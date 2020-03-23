@@ -147,19 +147,6 @@ public:
 		}
 		pointer[N] = (int)values.size();
 	}
-	void convertToMatrix(Matrix& A)
-	{
-		for (int i = 0; i < N; i++)
-		{
-			int numElementsInCol = pointer[i + 1] - pointer[i];
-			if (numElementsInCol == 0) continue;
-			for (int pos = pointer[i]; pos < pointer[i + 1]; pos++)
-			{
-				type el = values[pos];
-				A[i][rows[pos]] = el;
-			}
-		}
-	}
 	void transposition()
 	{
 		vector<vector<pair<type, int>>> tmp(N, vector<pair<type, int>>());
