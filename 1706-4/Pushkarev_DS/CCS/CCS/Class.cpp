@@ -77,7 +77,7 @@ public:
 		return true;
 	}
 
-	static void readMatrix(Matrix& A, Matrix& B, int N)
+	static void readMatrix(Matrix& A, Matrix& B, int N)//для вызова классом
 	{
 		ifstream input("matrix.txt");
 		for (int i = 0; i < A.vv.size() + B.vv.size(); i++)
@@ -96,7 +96,7 @@ public:
 	}
 
 
-	static void writeMatrix(Matrix &A, int N)
+	static void writeMatrix(Matrix &A, int N)//для вызова классом
 	{
 		A.transposition();
 		ofstream input("resMatrix.txt");
