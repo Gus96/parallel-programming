@@ -1,7 +1,9 @@
-#include <vector>
+п»ї#include <vector>
 #include <algorithm>
 #include <iostream>
 #include <fstream>
+#include <ctime>
+#include <chrono>
 typedef double type;
 
 using namespace std;
@@ -21,7 +23,7 @@ public:
 	{
 		this->row = row;
 		this->col = col;
-		vv = vector<type>(row * col);//по столбцам
+		vv = vector<type>(row * col);//РїРѕ СЃС‚РѕР»Р±С†Р°Рј
 	}
 	Matrix(int col, int row, type val)
 	{
@@ -77,7 +79,7 @@ public:
 		return true;
 	}
 
-	static void readMatrix(Matrix& A, Matrix& B, int N)//для вызова классом
+	static void readMatrix(Matrix& A, Matrix& B, int N)//РґР»СЏ РІС‹Р·РѕРІР° РєР»Р°СЃСЃРѕРј
 	{
 		ifstream input("matrix.txt");
 		for (int i = 0; i < A.vv.size() + B.vv.size(); i++)
@@ -96,7 +98,7 @@ public:
 	}
 
 
-	static void writeMatrix(Matrix &A, int N)//для вызова классом
+	static void writeMatrix(Matrix &A, int N)//РґР»СЏ РІС‹Р·РѕРІР° РєР»Р°СЃСЃРѕРј
 	{
 		A.transposition();
 		ofstream input("resMatrix.txt");
@@ -120,8 +122,89 @@ protected:
 	vector<int> pointer;
 	int N;
 public:
+	double* value;
+	int* row;
+	int* point;
+	//int sizematrix;
+	int value_size;
+	int point_size;
+	int SM;
+	int SR;//РєРѕР»РёС‡РµСЃС‚РІРѕ СЃС‚СЂРѕРє
+	int SC;//РєРѕР»РёС‡РµСЃС‚РІРѕ СЃС‚РѕР»Р±С†РѕРІ
+	int count_val = 0;
 	//MatrixCCS() {}
 	MatrixCCS(int n) :N(n) 	{}
+	MatrixCCS(int n1, int n2, int n3)//n2 - РєРѕР»РёС‡РµСЃС‚РІРѕ СЃС‚СЂРѕРє, n3 - РєРѕР»РёС‡РµСЃС‚РІРѕ СЃС‚РѕР»Р±С†РѕРІ
+	{
+		SR = n2;
+		SC = n3;
+		if (n2 < n3) SM = n2;
+		else SM = n3;
+		//SM = n2;//matrix size
+		//value = new int[n1 * n2];//РІС‹РґРµР»СЏРµС‚СЃСЏ РїР°РјСЏС‚СЊ РґР»СЏ РјР°С‚СЂРёС†С‹ n1*n2(n1-СЃС‚СЂРѕРєРё)
+		value = new double[n1];//РєРѕР»РёС‡РµСЃС‚РІРѕ РЅРµРЅСѓР»РµРІС‹С… СЌР»РµРјРµРЅС‚РѕРІ
+		row = new int[n1];
+		point = new int[SM + 1];
+		value_size = n1;
+		point_size = SM + 1;
+		//sizematrix = n1 * n2;
+	}
+	MatrixCCS(const MatrixCCS& m)
+	{
+		this->value_size = m.value_size;
+		this->count_val = m.count_val;
+		this->N = m.N;
+		this->SM = m.SM;
+		this->point_size = m.point_size;
+		this->value = new double[m.value_size];
+		for (int i = 0; i < m.value_size; i++)
+		{
+			this->value[i] = m.value[i];
+		}
+		this->row = new int[m.value_size];
+		for (int i = 0; i < m.value_size; i++)
+		{
+			this->row[i] = m.row[i];
+		}
+		this->point = new int[m.point_size];
+		for (int i = 0; i < m.value_size; i++)
+		{
+			this->point[i] = m.point[i];
+		}
+	}
+	MatrixCCS operator = (const MatrixCCS& m)
+	{
+		count_val = m.count_val;
+		this->value_size = m.value_size;
+		this->N = m.N;
+		this->SM = m.SM;
+		delete[] value;
+		delete[] row;
+		delete[] point;
+		this->value = new double[m.value_size];
+		for (int i = 0; i < m.value_size; i++)
+		{
+			this->value[i] = m.value[i];
+		}
+		this->row = new int[m.value_size];
+		for (int i = 0; i < m.value_size; i++)
+		{
+			this->row[i] = m.row[i];
+		}
+		this->point = new int[m.point_size];
+		for (int i = 0; i < m.value_size; i++)
+		{
+			this->point[i] = m.point[i];
+		}
+		return *this;
+	}
+
+	~MatrixCCS()
+	{
+		delete[] value;
+		delete[] row;
+		delete[] point;
+	}
 	MatrixCCS(Matrix& M) :N(M.getRow())
 	{
 		pointer = vector<int>(N + 1);
@@ -131,17 +214,17 @@ public:
 			int curCount = 0;
 			for (int i = 0; i < N; i++)
 			{
-				type el = M[j][i];//берем элемент из поступившей матрицы
+				type el = M[j][i];//Р±РµСЂРµРј СЌР»РµРјРµРЅС‚ РёР· РїРѕСЃС‚СѓРїРёРІС€РµР№ РјР°С‚СЂРёС†С‹
 				if (el != 0.0)
 				{
 					curCount++;
-					rows.push_back(i);//сохраняем в какой строке
+					rows.push_back(i);//СЃРѕС…СЂР°РЅСЏРµРј РІ РєР°РєРѕР№ СЃС‚СЂРѕРєРµ
 					values.push_back(el);
 				}
 			}
 			if (j != 0)
 			{
-				pointer[j] = pointer[j - 1] + lastCount;//индекс в values, начала в матрице
+				pointer[j] = pointer[j - 1] + lastCount;//РёРЅРґРµРєСЃ РІ values, РЅР°С‡Р°Р»Р° РІ РјР°С‚СЂРёС†Рµ
 			}
 			lastCount = curCount;
 		}
@@ -150,32 +233,32 @@ public:
 	void transposition()
 	{
 		vector<vector<pair<type, int>>> tmp(N, vector<pair<type, int>>());
-		int pCount = 0;//номер столбца
-		int numElementsInCol = 0;//сколько ненулевых элементов в столбце
+		int pCount = 0;//РЅРѕРјРµСЂ СЃС‚РѕР»Р±С†Р°
+		int numElementsInCol = 0;//СЃРєРѕР»СЊРєРѕ РЅРµРЅСѓР»РµРІС‹С… СЌР»РµРјРµРЅС‚РѕРІ РІ СЃС‚РѕР»Р±С†Рµ
 		for (int i = 0; i < values.size(); i += numElementsInCol)
 		{
-			numElementsInCol = pointer[pCount + 1] - pointer[pCount];//вычисление количества элементов в столбце
-			for (int z = i; z < i + numElementsInCol; z++)//цикл для просмотра одного столбца
+			numElementsInCol = pointer[pCount + 1] - pointer[pCount];//РІС‹С‡РёСЃР»РµРЅРёРµ РєРѕР»РёС‡РµСЃС‚РІР° СЌР»РµРјРµРЅС‚РѕРІ РІ СЃС‚РѕР»Р±С†Рµ
+			for (int z = i; z < i + numElementsInCol; z++)//С†РёРєР» РґР»СЏ РїСЂРѕСЃРјРѕС‚СЂР° РѕРґРЅРѕРіРѕ СЃС‚РѕР»Р±С†Р°
 			{
-				int row = rows[z];//в какой строке ненулевой
+				int row = rows[z];//РІ РєР°РєРѕР№ СЃС‚СЂРѕРєРµ РЅРµРЅСѓР»РµРІРѕР№
 				int col = pCount;
 				type el = values[z];
 				tmp[row].push_back(make_pair(el, col));
 			}
 			pCount++;
 		}
-		pCount = 0;//для pointer
+		pCount = 0;//РґР»СЏ pointer
 		vector<int>* cols = &rows;
 		int lastCount = 0;
 		int vCount = 0;
 		for (int i = 0; i < N; i++)
 		{
-			int numElementInCol = (int)tmp[i].size();//размер строки в матрице
-			if (numElementInCol > 0)//если в данной строке есть элементы
+			int numElementInCol = (int)tmp[i].size();//СЂР°Р·РјРµСЂ СЃС‚СЂРѕРєРё РІ РјР°С‚СЂРёС†Рµ
+			if (numElementInCol > 0)//РµСЃР»Рё РІ РґР°РЅРЅРѕР№ СЃС‚СЂРѕРєРµ РµСЃС‚СЊ СЌР»РµРјРµРЅС‚С‹
 			{
-				for (int j = 0; j < numElementInCol; j++)//заполнение массивов для CCS
+				for (int j = 0; j < numElementInCol; j++)//Р·Р°РїРѕР»РЅРµРЅРёРµ РјР°СЃСЃРёРІРѕРІ РґР»СЏ CCS
 				{
-					values[vCount] = tmp[i][j].first;//берем элемент
+					values[vCount] = tmp[i][j].first;//Р±РµСЂРµРј СЌР»РµРјРµРЅС‚
 					(*cols)[vCount] = tmp[i][j].second;
 					vCount++;
 				}
@@ -189,43 +272,67 @@ public:
 
 		}
 	}
+
+
+
 	MatrixCCS operator * (const MatrixCCS& m)
 	{
-		MatrixCCS res(N);//результирующая матрица
-		res.pointer.push_back(0);
-		transposition();
-		vector<int>* cols = &rows;
+		int res_size;
+		if (this->value_size == m.value_size)
+			res_size = m.value_size;
+		else if (this->value_size < m.value_size)
+			res_size = this->value_size;
+		else
+			res_size = m.value_size;
+
+		//int size_res_matrix;
+
+		//count_val = 0;
+		int curr_value = 0;//С‚РµРєСѓС‰Р°СЏ РїРѕР·РёС†РёСЏ values
+		int curr_row = 0;//С‚РµРєСѓС‰Р°СЏ РїРѕР·РёС†РёСЏ row
+		int curr_point = 0;//С‚РµРєСѓС‰Р°СЏ РїРѕР·РёС†РёСЏ pointer
+
+		MatrixCCS res(res_size, SR, m.SC);//СЂРµР·СѓР»СЊС‚РёСЂСѓСЋС‰Р°СЏ РјР°С‚СЂРёС†Р°
+		res.point[curr_point] = 0; curr_point++;
+		//res.pointer.push_back(0);
+		//transposition();
+		int* cols = row;
+		//vector<int>* cols = &rows;
 		int elCountM = 0;
-		for (int j = 0; j < m.N; j++)
+		for (int j = 0; j < m.SC; j++)
 		{
 			int numElInResCol = 0;
-			const int numElementInCol = m.pointer[j + 1] - m.pointer[j];//вычисляется количество элементов в столбце
+			const int numElementInCol = m.point[j + 1] - m.point[j];//РІС‹С‡РёСЃР»СЏРµС‚СЃСЏ РєРѕР»РёС‡РµСЃС‚РІРѕ СЌР»РµРјРµРЅС‚РѕРІ РІ СЃС‚РѕР»Р±С†Рµ
 			if (numElementInCol == 0)
 			{
-				int size = res.pointer.size();//размер pointer в результирующем векторе
-				res.pointer.push_back(res.pointer[size - 1]);//дублируем предыдущий(если в данном столбце ноль)
+				//int size = res.pointer.size();//СЂР°Р·РјРµСЂ pointer РІ СЂРµР·СѓР»СЊС‚РёСЂСѓСЋС‰РµРј РІРµРєС‚РѕСЂРµ
+			//int size = point_size;//СЂР°Р·РјРµСЂ pointer РІ СЂРµР·СѓР»СЊС‚РёСЂСѓСЋС‰РµРј РІРµРєС‚РѕСЂРµ
+				//res.pointer.push_back(res.pointer[size - 1]);//РґСѓР±Р»РёСЂСѓРµРј РїСЂРµРґС‹РґСѓС‰РёР№(РµСЃР»Рё РІ РґР°РЅРЅРѕРј СЃС‚РѕР»Р±С†Рµ РЅРѕР»СЊ)
+				res.point[curr_point] = res.point[curr_point - 1];//РґСѓР±Р»РёСЂСѓРµРј РїСЂРµРґС‹РґСѓС‰РёР№(РµСЃР»Рё РІ РґР°РЅРЅРѕРј СЃС‚РѕР»Р±С†Рµ РЅРѕР»СЊ)
+				curr_point++;
 				continue;
 			}
 			int elCountThis = 0;
-			for (int i = 0; i < N; i++)
+			for (int i = 0; i < SR; i++)
 			{
-				const int numElementInRow = pointer[i + 1] - pointer[i];//сколько элементов в строке
-				if (numElementInRow == 0)//если ноль элементов
+				const int numElementInRow = point[i + 1] - point[i];//СЃРєРѕР»СЊРєРѕ СЌР»РµРјРµРЅС‚РѕРІ РІ СЃС‚СЂРѕРєРµ
+				if (numElementInRow == 0)//РµСЃР»Рё РЅРѕР»СЊ СЌР»РµРјРµРЅС‚РѕРІ
 				{
 					continue;
 				}
-				int tmpNumElCol = numElementInCol;//количество элементов в столбце матрицы m
-				int tmpNumElRow = numElementInRow;//количество элементов в строке матрицы this
+				int tmpNumElCol = numElementInCol;//РєРѕР»РёС‡РµСЃС‚РІРѕ СЌР»РµРјРµРЅС‚РѕРІ РІ СЃС‚РѕР»Р±С†Рµ РјР°С‚СЂРёС†С‹ m
+				int tmpNumElRow = numElementInRow;//РєРѕР»РёС‡РµСЃС‚РІРѕ СЌР»РµРјРµРЅС‚РѕРІ РІ СЃС‚СЂРѕРєРµ РјР°С‚СЂРёС†С‹ this
 
 				type sum = 0;
 				int tmpElCountM = elCountM;
-				for (int z = 0; z < min(tmpNumElCol, tmpNumElRow);)//выбираем min, т.к. соответствующие элементы умножаются, в других будет ноль
+				for (int z = 0; z < min(tmpNumElCol, tmpNumElRow);)//РІС‹Р±РёСЂР°РµРј min, С‚.Рє. СЃРѕРѕС‚РІРµС‚СЃС‚РІСѓСЋС‰РёРµ СЌР»РµРјРµРЅС‚С‹ СѓРјРЅРѕР¶Р°СЋС‚СЃСЏ, РІ РґСЂСѓРіРёС… Р±СѓРґРµС‚ РЅРѕР»СЊ
 				{
-					int colThis = (*cols)[elCountThis];//получает позицию ненулевого
-					int rowM = m.rows[tmpElCountM];//получает позицию ненулевого в M
-					if (colThis == rowM)//сравнивается на соответсвие
+					//int colThis = (*cols)[elCountThis];//РїРѕР»СѓС‡Р°РµС‚ РїРѕР·РёС†РёСЋ РЅРµРЅСѓР»РµРІРѕРіРѕ
+					int colThis = cols[elCountThis];//РїРѕР»СѓС‡Р°РµС‚ РїРѕР·РёС†РёСЋ РЅРµРЅСѓР»РµРІРѕРіРѕ
+					int rowM = m.row[tmpElCountM];//РїРѕР»СѓС‡Р°РµС‚ РїРѕР·РёС†РёСЋ РЅРµРЅСѓР»РµРІРѕРіРѕ РІ M
+					if (colThis == rowM)//СЃСЂР°РІРЅРёРІР°РµС‚СЃСЏ РЅР° СЃРѕРѕС‚РІРµС‚СЃРІРёРµ
 					{
-						sum += values[elCountThis] * m.values[tmpElCountM];
+						sum += value[elCountThis] * m.value[tmpElCountM];
 						tmpNumElCol--;
 						tmpNumElRow--;
 						tmpElCountM++;
@@ -233,10 +340,10 @@ public:
 					}
 					else if (colThis < rowM)//this
 					{
-						tmpNumElRow--;//количество оставшихся ненулевых
-						elCountThis++;//позиция
+						tmpNumElRow--;//РєРѕР»РёС‡РµСЃС‚РІРѕ РѕСЃС‚Р°РІС€РёС…СЃСЏ РЅРµРЅСѓР»РµРІС‹С…
+						elCountThis++;//РїРѕР·РёС†РёСЏ
 					}
-					else//для m
+					else//РґР»СЏ m
 					{
 						tmpNumElCol--;
 						tmpElCountM++;
@@ -247,18 +354,39 @@ public:
 
 				if (sum != 0)
 				{
-					res.values.push_back(sum);
-					res.rows.push_back(i);
-					numElInResCol++;//сколько элементов в столбце
+					//res.values.push_back(sum);
+					res.value[curr_value] = sum; curr_value++; res.count_val++;
+					//res.rows.push_back(i);
+					res.row[curr_row] = i; curr_row++;
+					numElInResCol++;//СЃРєРѕР»СЊРєРѕ СЌР»РµРјРµРЅС‚РѕРІ РІ СЃС‚РѕР»Р±С†Рµ
 				}
 			}
-			const int size = res.pointer.size();
-			res.pointer.push_back(res.pointer[size - 1] + numElInResCol);
+			//const int size = res.pointer.size();
+			const int size = curr_point;
+			//res.pointer.push_back(res.pointer[size - 1] + numElInResCol);
+			res.point[curr_point] = res.point[curr_point - 1] + numElInResCol;
+			curr_point++;
 			elCountM += numElementInCol;
 		}
-		transposition();
+		//transposition();
+
+		for (int i = 0; i < res.count_val; i++)
+			cout << res.value[i] << " ";
+			cout << endl;
+
+			for (int i = 0; i < res.count_val; i++)
+				cout << res.row[i] << " ";
+			cout << endl;
+			for (int i = 0; i < res.point_size; i++)
+				cout << res.point[i] << " ";
+			cout << endl;
+
+			//return 1;
 		return res;
 	}
+
+
+
 
 	Matrix CCStoMatrix()
 	{
@@ -297,21 +425,167 @@ public:
 		return res;
 	}
 
+	static void readCCSMatrix(MatrixCCS& A, MatrixCCS& B)//РґР»СЏ РІС‹Р·РѕРІР° РєР»Р°СЃСЃРѕРј
+	{
+		ifstream input("A.txt");
+
+		for (int i = 0; i < A.value_size; i++)//value
+		{
+				input >> A.value[i];
+			//РґР°Р»СЊС€Рµ РґР»СЏ row, РґР»СЏ pointer
+		}
+		for (int i = 0; i < A.value_size; i++)//row
+		{
+				input >> A.row[i];
+		}
+		for (int i = 0; i < A.point_size; i++)
+		{
+			input >> A.point[i];
+		}
+		input.close();
+
+
+		ifstream input1("B.txt");
+
+		for (int i = 0; i < B.value_size; i++)//value
+		{
+			input1 >> B.value[i];
+			//РґР°Р»СЊС€Рµ РґР»СЏ row, РґР»СЏ pointer
+		}
+		for (int i = 0; i < B.value_size; i++)//row
+		{
+			input1 >> B.row[i];
+		}
+		for (int i = 0; i < B.point_size; i++)
+		{
+			input1 >> B.point[i];
+		}
+		input1.close();
+
+
+	}
+
+	static void writeToFile(MatrixCCS& A)//РґР»СЏ РІС‹Р·РѕРІР° РєР»Р°СЃСЃРѕРј
+	{
+		ofstream input("resMatrix.txt");
+		for (int i = 0; i < A.count_val; i++)
+		{
+			input << A.value[i] << "\t ";
+		}
+		input << endl;
+		for (int i = 0; i < A.count_val; i++)
+		{
+			input << A.row[i] << "\t ";
+		}
+		input << endl;
+		for (int i = 0; i < A.point_size; i++)
+		{
+			input << A.point[i] << "\t ";
+		}
+		input << endl;
+
+		input.close();
+	}
+
+
 };
 
 
-
-int main()
+int main(int argc, char **argv)
 {
-	Matrix a(4, 4), b(4, 4), c(4, 4);
+	//Matrix a(4, 4), b(4, 4), c(4, 4);
 
-	Matrix::readMatrix(a, b, 4);
+	//Matrix::readMatrix(a, b, 4);
 
-	MatrixCCS a1(a), b1(b), c1(c);
-	c1 = a1 * b1;
-	c = c1.CCStoMatrix();
+	int size;//РєРѕР»РёС‡РµСЃС‚РІРѕ РЅРµРЅСѓР»РµРІС‹С…
+	int r;// = 4;//РєРѕР»РёС‡РµСЃС‚РІРѕ СЃС‚СЂРѕРє
+	int c; //= 4;//РєРѕР»РёС‡РµСЃС‚РІРѕ СЃС‚РѕР»Р±С†РѕРІ
+	size = atoi(argv[1]);
+	r = atoi(argv[2]);
+	c = atoi(argv[3]);
 
-	Matrix::writeMatrix(c, 4);
+	int size_;//РєРѕР»РёС‡РµСЃС‚РІРѕ РЅРµРЅСѓР»РµРІС‹С…
+	int r_;// = 4;//РєРѕР»РёС‡РµСЃС‚РІРѕ СЃС‚СЂРѕРє
+	int c_; //= 4;//РєРѕР»РёС‡РµСЃС‚РІРѕ СЃС‚РѕР»Р±С†РѕРІ
+	size_ = atoi(argv[4]);
+	r_ = atoi(argv[5]);
+	c_ = atoi(argv[6]);
+
+	cout << size<<" " << r<<" " << c<<" " << size_<<" " << r_<<" " << c_<<" " << endl;
+
+
+	MatrixCCS a1(size, r, c), b1(size_, r_, c_);
+	//MatrixCCS a1(a), b1(b), c1(c);
+	//MatrixCCS a1(5, 3, 4), b1(4, 4, 2);//, c1(4, 4, 4);//РїРµСЂРІС‹Р№ РїР°СЂР°РјРµС‚СЂ - СЂР°Р·РјРµСЂ value
+
+	int res_size;
+	if (a1.value_size == b1.value_size)
+		res_size = b1.value_size;
+	else if (a1.value_size < b1.value_size)
+		res_size = a1.value_size;
+	else
+		res_size = b1.value_size;
+
+	MatrixCCS c1(res_size, a1.SR, b1.SC);
+
+
+
+	MatrixCCS::readCCSMatrix(a1, b1);
+
+
+	{
+		for (int i = 0; i < a1.value_size; i++)
+		{
+			cout << a1.value[i] << " ";
+		}
+		cout << endl;
+		for (int i = 0; i < a1.value_size; i++)
+		{
+			cout << a1.row[i] << " ";
+		}
+		cout << endl;
+		for (int i = 0; i < a1.point_size; i++)
+		{
+			cout << a1.point[i] << " ";
+		}
+
+		cout << endl;
+		cout << endl;
+
+		for (int i = 0; i < b1.value_size; i++)
+		{
+			cout << b1.value[i] << " ";
+		}
+		cout << endl;
+		for (int i = 0; i < b1.value_size; i++)
+		{
+			cout << b1.row[i] << " ";
+		}
+		cout << endl;
+		for (int i = 0; i < b1.point_size; i++)
+		{
+			cout << b1.point[i] << " ";
+		}
+
+	}
+
+	cout << endl;
+	
+	auto begin = std::chrono::steady_clock::now();
+	c1 = a1* b1;
+	auto end = std::chrono::steady_clock::now();
+	auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
+	std::cout << "The time: " << elapsed_ms.count() << " ms\n";
+
+
+	MatrixCCS::writeToFile(c1);
+
+	cout << endl;
+	//cout<<c1.value[0];
+	//c1 = a1 * b1;
+	//c = c1.CCStoMatrix();
+
+	//Matrix::writeMatrix(c, 4);
 
 	return 0;
 }
