@@ -118,7 +118,7 @@ public:
 		{
 			int prob;//вероятность
 			prob = rand() % 100;
-			if (prob < 10)
+			if (prob < 15)
 				A.vv[i] = (rand() % 10) + (double)(rand() % 10) / 10;//генерирует число и дробную часть
 			else
 				A.vv[i] = 0;
@@ -128,7 +128,7 @@ public:
 		{
 			int prob;//вероятность
 			prob = rand() % 100;
-			if (prob < 10)
+			if (prob < 15)
 				B.vv[i] = (rand() % 10) + (double)(rand() % 10) / 10;
 			else
 				B.vv[i] = 0;
@@ -440,7 +440,7 @@ int main()
 		double time = omp_get_wtime();//подсчет времени
 		c1 = a1.parallelMult(b1, numThreads);
 		time = omp_get_wtime() - time;
-		cout << time << endl;//завершение подсчета времени и вывод
+		cout << "Time: " << time << endl;//завершение подсчета времени и вывод
 		c = c1.CCStoMatrix();
 
 		Matrix::writeMatrix(c, mSize);//запись результата в файл
@@ -460,7 +460,7 @@ int main()
 		double time = omp_get_wtime();//подсчет времени
 		c1 = a1.parallelMult(b1, numThreads);
 		time = omp_get_wtime() - time;
-		cout << time << endl;//завершение подсчета времени и вывод
+		cout << "Time: " << time << endl;//завершение подсчета времени и вывод
 		c = c1.CCStoMatrix();
 
 		Matrix::writeMatrix(c, mSize);//запись результата в файл
